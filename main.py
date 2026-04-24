@@ -1,26 +1,27 @@
 import os
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-from fastapi.templating import Jinja2Templates # Upar hi import kar lein
+from fastapi.templating import Jinja2Templates
 
 # Load environment variables
 load_dotenv()
 
-# --- Path Fix for Vercel ---
-# Is se templates folder ka sahi path milega chahe code kahin bhi ho
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Agar templates folder app folder se bahar hai (root par)
-TEMPLATES_DIR = os.path.join(BASE_DIR, "..", "templates") 
+# --- Path Fix for Templates ---
+# Railway ke liye absolute path lazmi hai taake Jinja2 ko templates mil sakein
+BASE_DIR = os.path.dirname(os.path.abspath(_file)) # __file_ ki spelling sahi ki
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates") # Agar templates app folder ke andar hain
 
-from app.database import engine, Base
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
+
+from app.database import engine, Base, ensure_schema
 from app import db_models
 
-# Create tables on startup
-Base.metadata.create_all(bind=engine)
-from app.database import ensure_schema
-ensure_schema()
+# Startup event mein schema ensure karna behtar hota hai
+@app.on_event("startup")
+def startup_event():
+    ensure_schema()
 
 from app.routes import router
 
@@ -44,8 +45,10 @@ app.add_middleware(SecurityHeadersMiddleware)
 # Routes ko include karna
 app.include_router(router)
 
-# Error handler fixed for Vercel
+# 404 Handler
 @app.exception_handler(404)
-async def custom_404_handler(request, exc):
-    templates = Jinja2Templates(directory=TEMPLATES_DIR)
+async def custom_404_handler(request: Request, exc):
     return templates.TemplateResponse("error.html", {"request": request, "status_code": 404, "detail": "Page Not Found!"})
+
+# Railway ko 'app' object chahiye hota hai
+app = app
