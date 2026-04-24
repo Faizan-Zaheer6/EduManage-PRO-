@@ -1,5 +1,6 @@
 import csv
 import io
+import os
 from datetime import date as date_type
 
 from fastapi import APIRouter, Request, Form, Query
@@ -24,7 +25,9 @@ from .auth import (
 from .models import grade_from_marks
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+templates_path = os.path.join(BASE_DIR, "templates")
+templates = Jinja2Templates(directory=templates_path)
 
 student_mgr    = StudentManager()
 course_mgr     = CourseManager()
