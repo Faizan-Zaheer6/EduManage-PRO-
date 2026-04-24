@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Records — EduManage Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    {% include "_theme.html" %}
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Outfit',sans-serif;background:#020617;color:#e2e8f0;display:flex;min-height:100vh}
+        .sidebar{width:260px;min-height:100vh;background:#0b1120;border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:32px 20px;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100}
+        .sidebar-logo{font-size:1.4rem;font-weight:900;background:linear-gradient(135deg,#a5b4fc,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:36px;padding-left:8px}
+        .nav-section{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#334155;margin:20px 0 8px 8px}
+        .nav-link{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;text-decoration:none;color:#64748b;font-size:.9rem;font-weight:500;transition:all .2s;margin-bottom:4px}
+        .nav-link:hover{background:rgba(255,255,255,.05);color:#e2e8f0}
+        .nav-link.active{background:rgba(99,102,241,.15);color:#a5b4fc}
+        .sidebar-bottom{margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.06)}
+        .user-chip{display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,.04);border-radius:12px}
+        .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0}
+        .uname{font-size:.85rem;font-weight:600;color:#e2e8f0}.urole{font-size:.7rem;color:#64748b}
+        .badge-admin{color:#818cf8}.badge-user{color:#34d399}
+        .main{margin-left:260px;flex:1;padding:40px 48px}
+        .flash{padding:14px 20px;border-radius:12px;margin-bottom:28px;font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:10px;animation:slideIn .4s ease}
+        .flash-success{background:rgba(16,185,129,.15);border:1px solid rgba(16,185,129,.3);color:#34d399}
+        .flash-error{background:rgba(244,63,94,.12);border:1px solid rgba(244,63,94,.3);color:#fb7185}
+        @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+        .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
+        .page-header h1{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#a5b4fc,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .filters-bar{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+        .fg{display:flex;flex-direction:column;gap:6px;flex:1;min-width:150px}
+        .fg label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#475569}
+        .fg input,.fg select{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;color:#e2e8f0;font-family:'Outfit',sans-serif;font-size:.88rem;outline:none;transition:border-color .2s}
+        .fg input:focus,.fg select:focus{border-color:#6366f1}
+        .fg select option{background:#0b1120}
+        .btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);border:none;color:#fff;padding:10px 24px;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center}
+        .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+        .btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#64748b;padding:10px 18px;border-radius:10px;font-weight:600;font-size:.88rem;cursor:pointer;font-family:'Outfit',sans-serif;text-decoration:none;display:inline-flex;align-items:center;transition:all .2s}
+        .btn-ghost:hover{color:#e2e8f0;border-color:rgba(255,255,255,.2)}
+        .results-info{font-size:.82rem;color:#475569;margin-bottom:12px}
+        .table-card{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden}
+        table{width:100%;border-collapse:collapse}
+        thead tr{background:rgba(99,102,241,.08)}
+        th{padding:16px 20px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#475569}
+        tbody tr{border-top:1px solid rgba(255,255,255,.04);transition:background .15s}
+        tbody tr:hover{background:rgba(255,255,255,.03)}
+        td{padding:14px 20px;font-size:.9rem}
+        .sname{font-weight:700;color:#e2e8f0}.smeta{font-size:.78rem;color:#475569;margin-top:2px;font-family:monospace}
+        .grade-badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:700;margin:2px}
+        .gA,.gAp{background:rgba(16,185,129,.2);color:#34d399}
+        .gB,.gBp{background:rgba(56,189,248,.2);color:#38bdf8}
+        .gC{background:rgba(245,158,11,.2);color:#fbbf24}
+        .gD{background:rgba(249,115,22,.2);color:#fb923c}
+        .gF{background:rgba(244,63,94,.2);color:#fb7185}
+        .action-btns{display:flex;gap:8px;flex-wrap:wrap}
+        .btn-sm{padding:6px 12px;border-radius:8px;font-size:.78rem;font-weight:700;text-decoration:none;border:none;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;display:inline-block}
+        .btn-view{background:rgba(56,189,248,.15);color:#38bdf8}.btn-view:hover{background:rgba(56,189,248,.25)}
+        .btn-edit{background:rgba(99,102,241,.15);color:#818cf8}.btn-edit:hover{background:rgba(99,102,241,.25)}
+        .btn-marks{background:rgba(16,185,129,.15);color:#34d399}.btn-marks:hover{background:rgba(16,185,129,.25)}
+        .btn-del{background:rgba(244,63,94,.12);color:#fb7185}.btn-del:hover{background:rgba(244,63,94,.22)}
+        .empty-state{text-align:center;padding:80px 20px;color:#334155}
+        .pagination{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:28px}
+        .page-btn{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:#64748b;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:.85rem;font-weight:600;transition:all .2s}
+        .page-btn:hover{background:rgba(255,255,255,.1);color:#e2e8f0}
+        .page-btn.current{background:rgba(99,102,241,.2);border-color:rgba(99,102,241,.4);color:#818cf8}
+        .page-btn.disabled{opacity:.3;pointer-events:none}
+    </style>
+</head>
+<body>
+<nav class="sidebar">
+    <div class="sidebar-logo">⚡ EduManage Pro</div>
+    <div class="nav-section">Main</div>
+    <a href="/home" class="nav-link"><span>🏠</span>Home</a>
+    <a href="/view-records" class="nav-link active"><span>📁</span>Student Records</a>
+    <a href="/attendance" class="nav-link"><span>📅</span>Attendance</a>
+    {% if current_user.role == 'admin' %}
+    <div class="nav-section">Admin</div>
+    <a href="/enroll-page" class="nav-link"><span>➕</span>Enroll Student</a>
+    <a href="/admin" class="nav-link"><span>🛡️</span>Admin Panel</a>
+    <a href="/export/csv" class="nav-link"><span>📊</span>Export CSV</a>
+    <a href="/export/pdf" class="nav-link"><span>📄</span>Export PDF</a>
+    {% endif %}
+    <div class="sidebar-bottom">
+        <div class="user-chip">
+            <div class="avatar">{{ current_user.username[0].upper() }}</div>
+            <div><div class="uname">{{ current_user.username }}</div>
+            <div class="urole {% if current_user.role=='admin' %}badge-admin{% else %}badge-user{% endif %}">{{ current_user.role }}</div></div>
+        </div>
+        <button class="theme-toggle-btn" onclick="toggleTheme()" type="button">🌓 Toggle Theme</button>
+        <a href="/logout" class="nav-link" style="margin-top:10px;color:#475569"><span>🚪</span>Logout</a>
+    </div>
+</nav>
+<main class="main">
+    {% if msg %}<div class="flash flash-{{ msg_type }}">{% if msg_type=='success' %}✅{% else %}❌{% endif %} {{ msg }}</div>{% endif %}
+    <div class="page-header">
+        <h1>Student Records</h1>
+        {% if current_user.role == 'admin' %}
+        <a href="/enroll-page" class="btn-primary">+ Enroll New</a>
+        {% endif %}
+    </div>
+    <form method="get" action="/view-records" class="filters-bar">
+        <div class="fg"><label>Name</label><input type="text" name="search" value="{{ search }}" placeholder="Search name..."></div>
+        <div class="fg"><label>Course</label>
+            <select name="course"><option value="">All Courses</option>
+            {% for c in courses %}<option value="{{ c.title }}" {% if filter_course==c.title %}selected{% endif %}>{{ c.title }}</option>{% endfor %}
+            </select>
+        </div>
+        <div class="fg"><label>Roll No</label><input type="text" name="roll_no" value="{{ filter_roll }}" placeholder="e.g. CS-01"></div>
+        <div style="display:flex;gap:8px;align-items:flex-end">
+            <button type="submit" class="btn-primary">Search</button>
+            <a href="/view-records" class="btn-ghost">Clear</a>
+        </div>
+    </form>
+    <div class="results-info">Showing {{ students|length }} of {{ total_count }} students · Page {{ current_page }} of {{ total_pages }}</div>
+    <div class="table-card">
+        {% if students %}
+        <table>
+            <thead><tr><th>Student</th><th>Results</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for s in students %}
+            <tr>
+                <td>
+                    <div class="sname">{{ s.name }}</div>
+                    <div class="smeta">{{ s.roll_no }} · {{ s.course_name or s.course }}</div>
+                    <div class="smeta" style="font-family:'Outfit',sans-serif;color:#334155">{{ s.email }}</div>
+                </td>
+                <td>
+                    {% if s.results %}
+                        {% for r in s.results %}
+                        <span class="grade-badge g{{ r.grade|replace('+','p') }}">{{ r.subject }}: {{ r.grade }} ({{ r.marks }}/{{ r.total }})</span>
+                        {% endfor %}
+                    {% else %}<span style="color:#334155;font-size:.8rem">No results yet</span>{% endif %}
+                </td>
+                <td>
+                    <div class="action-btns">
+                        <a href="/student/{{ s.id }}" class="btn-sm btn-view">👤 Profile</a>
+                        {% if current_user.role == 'admin' %}
+                        <a href="/student/{{ s.id }}/edit" class="btn-sm btn-edit">✏️ Edit</a>
+                        <a href="/student/{{ s.id }}/marks" class="btn-sm btn-marks">📝 Marks</a>
+                        <form action="/remove/{{ s.id }}" method="post" onsubmit="return confirm('Remove {{ s.name }}?')" style="display:inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <button class="btn-sm btn-del" type="submit">🗑 Remove</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><span style="font-size:3rem">🔍</span><p style="margin-top:12px;font-size:1.1rem">No students found.</p></div>
+        {% endif %}
+    </div>
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        <a href="?search={{ search }}&course={{ filter_course }}&roll_no={{ filter_roll }}&page={{ current_page-1 }}" class="page-btn {% if current_page==1 %}disabled{% endif %}">← Prev</a>
+        {% for p in range(1, total_pages+1) %}<a href="?search={{ search }}&course={{ filter_course }}&roll_no={{ filter_roll }}&page={{ p }}" class="page-btn {% if p==current_page %}current{% endif %}">{{ p }}</a>{% endfor %}
+        <a href="?search={{ search }}&course={{ filter_course }}&roll_no={{ filter_roll }}&page={{ current_page+1 }}" class="page-btn {% if current_page==total_pages %}disabled{% endif %}">Next →</a>
+    </div>
+    {% endif %}
+</main>
+</body>
+</html>

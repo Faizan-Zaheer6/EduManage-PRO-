@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Enrollment Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+        }
+
+        input {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            border-color: #a5b4fc !important;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.2);
+        }
+    </style>
+</head>
+
+<body class="p-4 md:p-10">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-12">
+            <h1 class="text-4xl font-black text-blue-400 tracking-tighter">Registration Center</h1>
+            <a href="/" class="bg-white/10 px-6 py-2 rounded-full font-bold hover:bg-white/20">Back to Dashboard</a>
+        </div>
+
+        <div class="glass p-10 max-w-lg mx-auto">
+            <h2 class="text-2xl font-bold mb-8 flex items-center">
+                <span class="bg-blue-600 p-2 rounded-lg mr-4">Student Enrollment</span>
+            </h2>
+            <form action="/enroll" method="post" class="space-y-5">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="text" name="name" placeholder="Full Name" required class="w-full p-4 rounded-xl">
+                <input type="text" name="roll_no" placeholder="Roll Number" required class="w-full p-4 rounded-xl">
+                <input type="email" name="email" placeholder="Email Address" required class="w-full p-4 rounded-xl">
+
+                <div>
+                    <select name="course"
+                        class="w-full p-4 rounded-xl bg-white/5 border border-white/10 outline-none appearance-none">
+                        {% for c in courses %}<option value="{{ c.title }}" class="bg-slate-900">{{ c.title }}</option>
+                        {% endfor %}
+                    </select>
+                    <p onclick="openCourseModal()"
+                        class="text-xs text-indigo-400 font-bold mt-2 cursor-pointer hover:underline">
+                        ➕ Naya course catalog mein nahi hai?
+                    </p>
+                </div>
+
+                <button
+                    class="w-full bg-blue-600 py-4 rounded-xl font-black text-lg hover:bg-blue-500 shadow-lg shadow-blue-900/20 active:scale-95 transition-all">
+                    Enroll Now
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="courseModal"
+        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center invisible opacity-0 transition-opacity duration-300"
+        onclick="closeModalOnBackdrop(event)">
+        <div class="glass p-12 max-w-lg w-full text-left scale-95 transition-transform duration-300">
+            <h3 class="text-2xl font-bold mb-8 text-indigo-300 flex items-center">
+                <span class="bg-indigo-600 p-2 rounded-lg mr-4">Initialize Course</span>
+            </h3>
+            <form action="/add-course" method="post" class="space-y-6">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="text" name="title" placeholder="Graphic Design / Data Science" required
+                    class="w-full p-4 rounded-xl">
+                <input type="text" name="teacher" placeholder="Instructor" required class="w-full p-4 rounded-xl">
+
+                <div class="flex gap-4 pt-4">
+                    <button type="submit"
+                        class="flex-grow bg-indigo-600 py-4 rounded-xl font-bold text-lg hover:bg-indigo-500 transition active:scale-95">Create</button>
+                    <button type="button" onclick="closeCourseModal()"
+                        class="flex-grow bg-white/5 py-4 rounded-xl font-bold text-lg hover:bg-white/10 transition text-gray-300">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openCourseModal() {
+            document.getElementById('courseModal').classList.remove('invisible', 'opacity-0');
+            document.querySelector('#courseModal > div').classList.remove('scale-95');
+        }
+        function closeCourseModal() {
+            document.getElementById('courseModal').classList.add('invisible', 'opacity-0');
+            document.querySelector('#courseModal > div').classList.add('scale-95');
+        }
+        function closeModalOnBackdrop(event) {
+            if (event.target.id === 'courseModal') { closeCourseModal(); }
+        }
+    </script>
+</body>
+
+</html>

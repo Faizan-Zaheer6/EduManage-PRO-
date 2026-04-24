@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance — EduManage Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    {% include "_theme.html" %}
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:'Outfit',sans-serif;background:#020617;color:#e2e8f0;display:flex;min-height:100vh}
+        .sidebar{width:260px;min-height:100vh;background:#0b1120;border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:32px 20px;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:100}
+        .sidebar-logo{font-size:1.4rem;font-weight:900;background:linear-gradient(135deg,#a5b4fc,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:36px;padding-left:8px}
+        .nav-link{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;text-decoration:none;color:#64748b;font-size:.9rem;font-weight:500;transition:all .2s;margin-bottom:4px}
+        .nav-link:hover{background:rgba(255,255,255,.05);color:#e2e8f0}
+        .nav-link.active{background:rgba(99,102,241,.15);color:#a5b4fc}
+        .main{margin-left:260px;flex:1;padding:40px 48px}
+        .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px}
+        .glass-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:24px}
+        .att-table{width:100%;border-collapse:collapse}
+        .att-table th{text-align:left;font-size:11px;color:#475569;padding:16px;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .att-table td{padding:16px;font-size:.9rem;border-bottom:1px solid rgba(255,255,255,0.03)}
+        .status-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase}
+        .p-present{background:rgba(16,185,129,0.1);color:#34d399}
+        .p-absent{background:rgba(251,113,133,0.1);color:#fb7185}
+        .p-unmarked{background:rgba(255,255,255,0.05);color:#64748b}
+        .radio-group{display:flex;gap:12px}
+        .radio-label{cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px}
+        .btn-save{background:#6366f1;color:#fff;padding:12px 32px;border-radius:12px;font-weight:700;border:none;cursor:pointer}
+    </style>
+</head>
+<body>
+<nav class="sidebar">
+    <div class="sidebar-logo">⚡ EduManage Pro</div>
+    <a href="/home" class="nav-link"><span>🏠</span>Home</a>
+    <a href="/view-records" class="nav-link"><span>📁</span>Student Records</a>
+    <a href="/attendance" class="nav-link active"><span>📅</span>Attendance</a>
+    <div style="margin-top:auto">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" type="button">🌓 Toggle Theme</button>
+        <a href="/logout" class="nav-link" style="margin-top:10px;color:#475569"><span>🚪</span>Logout</a>
+    </div>
+</nav>
+<main class="main">
+    <div class="header">
+        <h1>Attendance Tracker</h1>
+        <form action="/attendance" method="get">
+            <input type="date" name="date" value="{{ date_str }}" onchange="this.form.submit()" 
+                   style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);padding:10px;border-radius:8px;color:#fff;font-family:inherit">
+        </form>
+    </div>
+    
+    <div class="glass-card">
+        <div style="display:flex;justify-content:space-between;margin-bottom:24px">
+            <div>
+                <h3 style="margin-bottom:4px">Records for {{ date_str }}</h3>
+                <p style="font-size:.8rem;color:#475569">
+                    {% if date_str == today %}Showing today's live data{% else %}Viewing historical records{% endif %}
+                </p>
+            </div>
+            {% if current_user.role == 'admin' %}
+            <button form="attForm" class="btn-save">Save Attendance</button>
+            {% endif %}
+        </div>
+
+        <form id="attForm" action="/attendance/mark" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="date_str" value="{{ date_str }}">
+            <table class="att-table">
+                <thead><tr><th>Student</th><th>Roll No</th><th>Course</th><th>Status</th></tr></thead>
+                <tbody>
+                    {% for s in students %}
+                    {% set status = day_records.get(s.id|string, 'unmarked') %}
+                    <tr>
+                        <td><div style="font-weight:600">{{ s.name }}</div><div style="font-size:.75rem;color:#475569">{{ s.email }}</div></td>
+                        <td>{{ s.roll_no }}</td>
+                        <td style="color:#818cf8">{{ s.course_name or s.course }}</td>
+                        <td>
+                            {% if current_user.role == 'admin' %}
+                            <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="status_{{ s.id }}" value="present" {% if status == 'present' %}checked{% endif %}> Present</label>
+                                <label class="radio-label"><input type="radio" name="status_{{ s.id }}" value="absent" {% if status == 'absent' %}checked{% endif %}> Absent</label>
+                            </div>
+                            {% else %}
+                            <span class="status-pill p-{{ status }}">{{ status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+    </div>
+</main>
+</body>
+</html>
