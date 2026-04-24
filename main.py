@@ -15,20 +15,19 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, "templates") # Agar templates app folder 
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
 
+app = FastAPI(
+    title="EduManage Pro",
+    debug=os.getenv("DEBUG", "False") == "True"
+)
+
 from app.database import engine, Base, ensure_schema
 from app import db_models
+from app.routes import router
 
 # Startup event mein schema ensure karna behtar hota hai
 @app.on_event("startup")
 def startup_event():
     ensure_schema()
-
-from app.routes import router
-
-app = FastAPI(
-    title="EduManage Pro",
-    debug=os.getenv("DEBUG", "False") == "True"
-)
 
 # 🛡️ Security Middleware
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -49,6 +48,3 @@ app.include_router(router)
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, exc):
     return templates.TemplateResponse("error.html", {"request": request, "status_code": 404, "detail": "Page Not Found!"})
-
-# Railway ko 'app' object chahiye hota hai
-app = app
