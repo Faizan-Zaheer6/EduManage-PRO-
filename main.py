@@ -10,7 +10,7 @@ load_dotenv()
 
 # --- Path Fix for Templates ---
 # Railway ke liye absolute path lazmi hai taake Jinja2 ko templates mil sakein
-BASE_DIR = os.path.dirname(os.path.abspath(_file)) # __file_ ki spelling sahi ki
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # __file_ ki spelling sahi ki
 TEMPLATES_DIR = os.path.join(BASE_DIR, "templates") # Agar templates app folder ke andar hain
 
 templates = Jinja2Templates(directory=TEMPLATES_DIR)
