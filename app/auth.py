@@ -23,10 +23,11 @@ class UserManager:
         self._seed_admin()
 
     def _seed_admin(self):
-        """Create a default admin account if no users exist."""
+        """Create or update default admin account."""
         db = SessionLocal()
         try:
-            if db.query(User).count() == 0:
+            admin = db.query(User).filter(User.username == "admin").first()
+            if not admin:
                 admin = User(
                     username="admin",
                     password=hash_password("admin@f10"),
@@ -34,6 +35,14 @@ class UserManager:
                 )
                 db.add(admin)
                 db.commit()
+                print("✅ Default admin created.")
+            else:
+                # Optional: Agar aap chahte hain ke har baar reset ho (recommended for this fix)
+                admin.password = hash_password("admin@f10")
+                db.commit()
+                print("✅ Admin password synchronized.")
+        except Exception as e:
+            print(f"❌ Seed error: {e}")
         finally:
             db.close()
 
