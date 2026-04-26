@@ -56,7 +56,12 @@ def render(request: Request, template_name: str, context: dict, status_code: int
     context = dict(context)
     context.setdefault("request", request)
     context.setdefault("csrf_token", get_csrf_token(request))
-    resp = templates.TemplateResponse(template_name, context, status_code=status_code)
+    resp = templates.TemplateResponse(
+        request=request, 
+        name=template_name, 
+        context=context, 
+        status_code=status_code
+    )
     # Ensure anonymous visitors can pass CSRF on login/signup
     if not get_current_user(request):
         token = context["csrf_token"]
@@ -71,7 +76,13 @@ def render(request: Request, template_name: str, context: dict, status_code: int
 
 def require_csrf_or_403(request: Request, form):
     if not validate_csrf(request, form):
-        return render(request, "error.html", {"status_code": 403, "detail": "Invalid CSRF token."}, status_code=403)
+        # Yahan context ko explicitly sahi format mein bhejein
+        context = {
+            "request": request, # Request object lazmi hai
+            "status_code": 403, 
+            "detail": "Invalid CSRF token."
+        }
+        return render(request, "error.html", context, status_code=403)
     return None
 
 def linked_student_for_user(user: dict):
@@ -284,18 +295,22 @@ async def home(request: Request, msg: str = None, type: str = "success"):
             course = "Unassigned"
         course_counts[course] = course_counts.get(course, 0) + 1
     
-    return templates.TemplateResponse("home.html", {
-        "request":       request,
-        "current_user":  user,
-        "total_students": len(visible_students),
-        "total_courses":  len(course_mgr.courses),
-        "today_att":      today_att,
-        "course_counts":  course_counts,
-        "linked_student": linked_student,
-        "msg":            msg,
-        "msg_type":       type,
-        "csrf_token":     get_csrf_token(request),
-    })
+    return templates.TemplateResponse(
+        request=request, 
+        name="home.html", 
+        context={
+            "request":       request,
+            "current_user":  user,
+            "total_students": len(visible_students),
+            "total_courses":  len(course_mgr.courses),
+            "today_att":      today_att,
+            "course_counts":  course_counts,
+            "linked_student": linked_student,
+            "msg":            msg,
+            "msg_type":       type,
+            "csrf_token":     get_csrf_token(request),
+        }
+    )
 
 
 # ── Enroll (login required) ───────────────────────────────────────────────────

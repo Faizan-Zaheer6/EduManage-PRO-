@@ -57,9 +57,13 @@ async def favicon():
 # 8. 404 Handler
 @app.exception_handler(404)
 async def custom_404_handler(request: Request, exc):
-    return templates.TemplateResponse("error.html", {
-        "request": request, 
-        "status_code": 404, 
-        "detail": "Page Not Found!"
-    })
+    return templates.TemplateResponse(
+        request=request, 
+        name="error.html", 
+        context={
+            "request": request, 
+            "status_code": 404, 
+            "detail": "Page Not Found!"
+        }
+    )
 
