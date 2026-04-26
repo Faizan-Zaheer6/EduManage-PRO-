@@ -48,9 +48,12 @@ def redirect_login():
 def redirect_home():
     return RedirectResponse(url="/home", status_code=302)
 
+import urllib.parse
+
 def flash_redirect(url: str, msg: str, msg_type: str = "success"):
+    encoded_msg = urllib.parse.quote(msg)
     sep = "&" if "?" in url else "?"
-    return RedirectResponse(url=f"{url}{sep}msg={msg}&type={msg_type}", status_code=302)
+    return RedirectResponse(url=f"{url}{sep}msg={encoded_msg}&type={msg_type}", status_code=302)
 
 def render(request: Request, template_name: str, context: dict, status_code: int = 200):
     context = dict(context)
@@ -338,7 +341,22 @@ async def enroll(
     csrf_err = require_csrf_or_403(request, form)
     if csrf_err:
         return csrf_err
-    student_mgr.enroll_student(name, email, course, roll_no)
+    from sqlalchemy.exc import IntegrityError
+    try:
+        student_mgr.enroll_student(name, email, course, roll_no)
+    except IntegrityError:
+        return render(request, "enroll_student.html", {
+            "courses": course_mgr.courses, 
+            "current_user": user, 
+            "error": f"Roll No '{roll_no}' already exists! Please use a unique Roll Number."
+        })
+    except Exception as e:
+        return render(request, "enroll_student.html", {
+            "courses": course_mgr.courses, 
+            "current_user": user, 
+            "error": f"An error occurred: {str(e)}"
+        })
+
     return flash_redirect("/view-records", f"{name} enrolled successfully!")
 
 
