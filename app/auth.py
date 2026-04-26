@@ -29,7 +29,7 @@ class UserManager:
             if db.query(User).count() == 0:
                 admin = User(
                     username="admin",
-                    password=hash_password("admin123"),
+                    password=hash_password("admin@f10"),
                     role="admin"
                 )
                 db.add(admin)
